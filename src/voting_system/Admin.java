@@ -8,6 +8,7 @@ import java.util.*;
 public class Admin {
     // Helper method for formatted admin printing
     private void printAdmin(String message) {
+        System.out.println();
         System.out.println("[ADMIN] " + message);
     }
     public final KeyPair keyPair;

@@ -10,6 +10,7 @@ import java.util.Random;
 public class Voter {
     // Helper method for formatted voter printing
     private void printVoter(String message) {
+        System.out.println();
         System.out.println("[VOTER-" + voterID + "] " + message);
     }
     public final String voterID;
