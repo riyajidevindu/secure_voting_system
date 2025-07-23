@@ -26,6 +26,8 @@ This project is a Java-based implementation of a secure electronic voting system
 
 ## Cryptographic Protocol
 
+![Protocol Workflow](./protocol-diagram.png)
+
 The system employs a hybrid cryptographic protocol to ensure secure communication and voting. The protocol combines asymmetric (RSA) and symmetric (AES) encryption, along with digital signatures for authentication and a Diffie-Hellman-like key exchange for establishing a shared secret.
 
 ### Secure Handshake Protocol
