@@ -52,6 +52,7 @@ public class Main {
 
             // Step 6: Voter -> Admin
             String encryptedVote = voter.prepareEncryptedVote(encryptedCandidateList);
+            System.out.println(voter.voterID + ": Encrypted value of the vote = " + encryptedVote);
 
             // Step 7: Admin stores
             admin.receiveEncryptedVote(sessionKey, encryptedVote, voter.voterID);
