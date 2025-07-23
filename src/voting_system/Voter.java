@@ -4,7 +4,6 @@ import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.*;
 import java.util.Base64;
-import java.util.List;
 import java.util.Random;
 //import java.util.SecureRandom;
 
@@ -85,20 +84,25 @@ public class Voter {
         }
 
         // Decrypt candidate list
+        System.out.println(voterID + ": Received encrypted candidate list = " + encryptedCandidateList);
+        
         String csvCandidates = CryptoUtil.decryptWithAES(encryptedCandidateList, sessionKey);
         String[] candidates = csvCandidates.split(",");
         if (candidates.length == 0) {
             throw new IllegalStateException("No candidates received");
         }
         
+        System.out.println(voterID + ": Received decrypted candidate list = " + csvCandidates);
+        
         Random rand = new Random();
 
         // Select a candidate randomly (simulation)
         String selected = candidates[rand.nextInt(candidates.length)];
-        System.out.println("Voter " + voterID + " selected: " + selected);
+        System.out.println(voterID + ": selected candidate = " + selected);
 
         // Hash and encrypt vote
         String hashedVote = CryptoUtil.sha256(selected);
+        System.out.println(voterID + ": Hashed value of the vote = " + hashedVote);
         return CryptoUtil.encryptWithAES(hashedVote, sessionKey);
     }
 

@@ -48,12 +48,11 @@ public class Main {
 
             // Step 5: Admin -> Voter
             String encryptedCandidateList = admin.sendCandidateList(sessionKey, candidates);
-            
-//            String encryptedCandidateList = CryptoUtil.encryptWithAES(String.join(",", candidates), sessionKey);
-            System.out.println("Encrypted Candidate List: " + encryptedCandidateList);
+            System.out.println("Admin : Encrypted Candidate List = " + encryptedCandidateList);
 
             // Step 6: Voter -> Admin
             String encryptedVote = voter.prepareEncryptedVote(encryptedCandidateList);
+            System.out.println(voter.voterID + ": Encrypted value of the vote = " + encryptedVote);
 
             // Step 7: Admin stores
             admin.receiveEncryptedVote(sessionKey, encryptedVote, voter.voterID);

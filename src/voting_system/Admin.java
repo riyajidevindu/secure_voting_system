@@ -104,7 +104,10 @@ public class Admin {
     
     // Receive encrypted vote
     public void receiveEncryptedVote(SecretKey sessionKey, String encryptedVote, String voterID) throws Exception {
+    	
+    	System.out.println("Admin: Encrypted value from " + voterID + " = "+ encryptedVote);
         String receivedHash = CryptoUtil.decryptWithAES(encryptedVote, sessionKey);
+        System.out.println("Admin: Received hash value from " + voterID + " = "+ receivedHash);
         storeVote(receivedHash);
         markVoted(voterID);
         System.out.println("Admin: Vote from " + voterID + " stored.");
@@ -115,6 +118,7 @@ public class Admin {
     }
 
     public void tallyVotes(String[] candidates) throws Exception {
+    	System.out.println(" ");
         System.out.println("===== Final Tally =====");
         Map<String, Integer> tally = new HashMap<>();
         for (String candidate : candidates) {
