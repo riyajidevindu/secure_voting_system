@@ -8,6 +8,11 @@ import java.util.Random;
 //import java.util.SecureRandom;
 
 public class Voter {
+    // Helper method for formatted voter printing
+    private void printVoter(String message) {
+        System.out.println();
+        System.out.println("[VOTER-" + voterID + "] " + message);
+    }
     public final String voterID;
     public final KeyPair keyPair;
     private final BigInteger p;
@@ -44,15 +49,14 @@ public class Voter {
             throw new SecurityException("Admin signature invalid.");
         }
         
-        System.out.println(this.voterID + ": Received encrypted payload from admin = " + challenge.encryptedPayload);
+        printVoter("Received encrypted payload from admin = " + challenge.encryptedPayload);
 
         // Decrypt
         String decrypted = CryptoUtil.decryptWithRSA(challenge.encryptedPayload, this.keyPair.getPrivate());
         String[] parts = decrypted.split("\\|");
         BigInteger receivedRA = new BigInteger(parts[0]);
         BigInteger g_b = new BigInteger(parts[1]);
-        
-        System.out.println(this.voterID + ": Received RA from admin = " + receivedRA);
+        printVoter("Received RA from admin = " + receivedRA);
 
         if (!receivedRA.equals(this.lastRA)) {
             throw new SecurityException("RA mismatch.");
@@ -60,21 +64,18 @@ public class Voter {
 
         BigInteger Ks = g_b.modPow(this.a, p);
         this.sessionKey = CryptoUtil.deriveAESKey(Ks);
-        
-        System.out.println(this.voterID + ": Derived DH value using a,b in voter side = " + Ks);
+        printVoter("Derived DH value using a,b in voter side = " + Ks);
 
         // Prepare response: encrypt and sign
         String payload = receivedRB + "|" + g_a;
         
-        System.out.println(this.voterID + ": Received RB from admin = " + receivedRB);
+        printVoter("Received RB from admin = " + receivedRB);
         
         String encryptedPayload = CryptoUtil.encryptWithRSA(payload, adminPublicKey);
         String signatureBase64 = Base64.getEncoder().encodeToString(
                 CryptoUtil.sign(encryptedPayload, keyPair.getPrivate())
         );
-        
-        System.out.println(this.voterID + ": Encrypted payload to admin = " + encryptedPayload);
-        
+        printVoter("Encrypted payload to admin = " + encryptedPayload);
         return encryptedPayload + "::" + signatureBase64;
     }
     
@@ -84,25 +85,20 @@ public class Voter {
         }
 
         // Decrypt candidate list
-        System.out.println(voterID + ": Received encrypted candidate list = " + encryptedCandidateList);
-        
+        printVoter("Received encrypted candidate list = " + encryptedCandidateList);
         String csvCandidates = CryptoUtil.decryptWithAES(encryptedCandidateList, sessionKey);
         String[] candidates = csvCandidates.split(",");
         if (candidates.length == 0) {
             throw new IllegalStateException("No candidates received");
         }
-        
-        System.out.println(voterID + ": Received decrypted candidate list = " + csvCandidates);
-        
+        printVoter("Received decrypted candidate list = " + csvCandidates);
         Random rand = new Random();
-
         // Select a candidate randomly (simulation)
         String selected = candidates[rand.nextInt(candidates.length)];
-        System.out.println(voterID + ": selected candidate = " + selected);
-
+        printVoter("Selected candidate = " + selected);
         // Hash and encrypt vote
         String hashedVote = CryptoUtil.sha256(selected);
-        System.out.println(voterID + ": Hashed value of the vote = " + hashedVote);
+        printVoter("Hashed value of the vote = " + hashedVote);
         return CryptoUtil.encryptWithAES(hashedVote, sessionKey);
     }
 

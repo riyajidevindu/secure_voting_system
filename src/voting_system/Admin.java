@@ -6,6 +6,11 @@ import java.security.*;
 import java.util.*;
 
 public class Admin {
+    // Helper method for formatted admin printing
+    private void printAdmin(String message) {
+        System.out.println();
+        System.out.println("[ADMIN] " + message);
+    }
     public final KeyPair keyPair;
     private final BigInteger p;   // DH modulus
     private final BigInteger g;   // DH base
@@ -40,24 +45,23 @@ public class Admin {
     }
 
     public DHChallenge initiateHandshake(Voter voter, BigInteger RA) throws Exception {
-        System.out.println("Admin: Received hello from " + voter.voterID + " with RA = " + RA);
+        printAdmin("Received hello from '" + voter.voterID + "' with RA = " + RA);
         this.currentVoter = voter;
         this.lastRA = RA;
         regenerateDH();
 
         this.lastRB = new BigInteger(128, new SecureRandom());
         String payload = RA + "|" + g_b;
-        System.out.println("Admin: Payload from admin = " + payload);
+        printAdmin("Payload = " + payload);
 
         // Encrypt
         String encryptedPayload = CryptoUtil.encryptWithRSA(payload, voter.keyPair.getPublic());
-        System.out.println("Admin: Encrypted payload from admin using RSA = " + encryptedPayload);
+        printAdmin("Encrypted payload using RSA = " + encryptedPayload);
 
         // Sign the encrypted payload
         byte[] signatureBytes = CryptoUtil.sign(encryptedPayload, keyPair.getPrivate());
         String signatureBase64 = Base64.getEncoder().encodeToString(signatureBytes);
-        
-        System.out.println("Admin: RB value from admin = " + lastRB);
+        printAdmin("RB value = " + lastRB);
 
         return new DHChallenge(lastRB, encryptedPayload, signatureBase64);
     }
@@ -75,7 +79,7 @@ public class Admin {
             throw new SecurityException("Voter signature invalid.");
         }
         
-        System.out.println("Admin: Received encrypted payload from "+ currentVoter.voterID + " = " + encryptedPayload);
+        printAdmin("Received encrypted payload from '" + currentVoter.voterID + "' = " + encryptedPayload);
 
         // Decrypt
         String decrypted = CryptoUtil.decryptWithRSA(encryptedPayload, keyPair.getPrivate());
@@ -88,10 +92,11 @@ public class Admin {
         }
         
         System.out.println("Admin: Received RB from "+ currentVoter.voterID + " = " + receivedRB);
+        printAdmin("Received RB from '" + currentVoter.voterID + "' = " + receivedRB);
 
         BigInteger Ks = voter_g_a.modPow(this.b, p);
         
-        System.out.println("Admin: Derived DH value using a,b in admin side = " + Ks);
+        printAdmin("Derived DH value using a,b in admin side = " + Ks);
         
         return CryptoUtil.deriveAESKey(Ks);
     }
@@ -104,13 +109,12 @@ public class Admin {
     
     // Receive encrypted vote
     public void receiveEncryptedVote(SecretKey sessionKey, String encryptedVote, String voterID) throws Exception {
-    	
-    	System.out.println("Admin: Encrypted value from " + voterID + " = "+ encryptedVote);
+        printAdmin("Encrypted value from '" + voterID + "' = " + encryptedVote);
         String receivedHash = CryptoUtil.decryptWithAES(encryptedVote, sessionKey);
-        System.out.println("Admin: Received hash value from " + voterID + " = "+ receivedHash);
+        printAdmin("Received hash value from '" + voterID + "' = " + receivedHash);
         storeVote(receivedHash);
         markVoted(voterID);
-        System.out.println("Admin: Vote from " + voterID + " stored.");
+        printAdmin("Vote from '" + voterID + "' stored.");
     }
 
     public void storeVote(String hash) {
@@ -118,15 +122,15 @@ public class Admin {
     }
 
     public void tallyVotes(String[] candidates) throws Exception {
-    	System.out.println(" ");
-        System.out.println("===== Final Tally =====");
+        System.out.println();
+        printAdmin("===== Final Tally =====");
         Map<String, Integer> tally = new HashMap<>();
         for (String candidate : candidates) {
             String hash = CryptoUtil.sha256(candidate);
             long count = voteLedger.stream().filter(h -> h.equals(hash)).count();
             tally.put(candidate, (int) count);
         }
-        tally.forEach((k, v) -> System.out.println(k + ": " + v + " vote(s)"));
+        tally.forEach((k, v) -> System.out.println("    " + k + ": " + v + " vote(s)"));
     }
 
     private void regenerateDH() {
