@@ -9,8 +9,10 @@ public class Admin {
     public final KeyPair keyPair;
     private final BigInteger p;   // DH modulus
     private final BigInteger g;   // DH base
+    
     private BigInteger b;         // DH private
     public BigInteger g_b;        // DH public
+    
     private final Map<String, Boolean> voterStatus = new HashMap<>();
     private final List<String> voteLedger = new ArrayList<>();
 
@@ -92,6 +94,20 @@ public class Admin {
         System.out.println("Admin: Derived DH value using a,b in admin side = " + Ks);
         
         return CryptoUtil.deriveAESKey(Ks);
+    }
+    
+    // Send candidate list
+    public String sendCandidateList(SecretKey sessionKey, String[] candidates) throws Exception {
+        String csv = String.join(",", candidates);
+        return CryptoUtil.encryptWithAES(csv, sessionKey);
+    }
+    
+    // Receive encrypted vote
+    public void receiveEncryptedVote(SecretKey sessionKey, String encryptedVote, String voterID) throws Exception {
+        String receivedHash = CryptoUtil.decryptWithAES(encryptedVote, sessionKey);
+        storeVote(receivedHash);
+        markVoted(voterID);
+        System.out.println("Admin: Vote from " + voterID + " stored.");
     }
 
     public void storeVote(String hash) {

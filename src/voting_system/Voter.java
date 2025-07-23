@@ -4,6 +4,8 @@ import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.*;
 import java.util.Base64;
+import java.util.List;
+import java.util.Random;
 //import java.util.SecureRandom;
 
 public class Voter {
@@ -75,6 +77,29 @@ public class Voter {
         System.out.println(this.voterID + ": Encrypted payload to admin = " + encryptedPayload);
         
         return encryptedPayload + "::" + signatureBase64;
+    }
+    
+    public String prepareEncryptedVote(String encryptedCandidateList) throws Exception {
+        if (sessionKey == null) {
+            throw new IllegalStateException("Session key not set for voter " + voterID);
+        }
+
+        // Decrypt candidate list
+        String csvCandidates = CryptoUtil.decryptWithAES(encryptedCandidateList, sessionKey);
+        String[] candidates = csvCandidates.split(",");
+        if (candidates.length == 0) {
+            throw new IllegalStateException("No candidates received");
+        }
+        
+        Random rand = new Random();
+
+        // Select a candidate randomly (simulation)
+        String selected = candidates[rand.nextInt(candidates.length)];
+        System.out.println("Voter " + voterID + " selected: " + selected);
+
+        // Hash and encrypt vote
+        String hashedVote = CryptoUtil.sha256(selected);
+        return CryptoUtil.encryptWithAES(hashedVote, sessionKey);
     }
 
     public void setLastRA(BigInteger RA) {

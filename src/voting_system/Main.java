@@ -47,19 +47,16 @@ public class Main {
             System.out.println("Session key established securely for " + voter.voterID);
 
             // Step 5: Admin -> Voter
-            String encryptedCandidateList = CryptoUtil.encryptWithAES(String.join(",", candidates), sessionKey);
+            String encryptedCandidateList = admin.sendCandidateList(sessionKey, candidates);
+            
+//            String encryptedCandidateList = CryptoUtil.encryptWithAES(String.join(",", candidates), sessionKey);
             System.out.println("Encrypted Candidate List: " + encryptedCandidateList);
 
             // Step 6: Voter -> Admin
-            String selected = candidates[rand.nextInt(candidates.length)];
-            System.out.println("Voter selected: " + selected);
-            String hashedVote = CryptoUtil.sha256(selected);
-            String encryptedVote = CryptoUtil.encryptWithAES(hashedVote, sessionKey);
+            String encryptedVote = voter.prepareEncryptedVote(encryptedCandidateList);
 
             // Step 7: Admin stores
-            String receivedHash = CryptoUtil.decryptWithAES(encryptedVote, sessionKey);
-            admin.storeVote(receivedHash);
-            admin.markVoted(voter.voterID);
+            admin.receiveEncryptedVote(sessionKey, encryptedVote, voter.voterID);
 
             System.out.println("Vote submitted securely.");
         }
