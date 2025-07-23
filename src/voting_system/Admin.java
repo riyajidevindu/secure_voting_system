@@ -45,13 +45,17 @@ public class Admin {
 
         this.lastRB = new BigInteger(128, new SecureRandom());
         String payload = RA + "|" + g_b;
+        System.out.println("Admin: Payload from admin = " + payload);
 
         // Encrypt
         String encryptedPayload = CryptoUtil.encryptWithRSA(payload, voter.keyPair.getPublic());
+        System.out.println("Admin: Encrypted payload from admin using RSA = " + encryptedPayload);
 
         // Sign the encrypted payload
         byte[] signatureBytes = CryptoUtil.sign(encryptedPayload, keyPair.getPrivate());
         String signatureBase64 = Base64.getEncoder().encodeToString(signatureBytes);
+        
+        System.out.println("Admin: RB value from admin = " + lastRB);
 
         return new DHChallenge(lastRB, encryptedPayload, signatureBase64);
     }
@@ -68,6 +72,8 @@ public class Admin {
         if (!valid) {
             throw new SecurityException("Voter signature invalid.");
         }
+        
+        System.out.println("Admin: Received encrypted payload from "+ currentVoter.voterID + " = " + encryptedPayload);
 
         // Decrypt
         String decrypted = CryptoUtil.decryptWithRSA(encryptedPayload, keyPair.getPrivate());
@@ -78,8 +84,13 @@ public class Admin {
         if (!receivedRB.equals(this.lastRB)) {
             throw new SecurityException("RB does not match.");
         }
+        
+        System.out.println("Admin: Received RB from "+ currentVoter.voterID + " = " + receivedRB);
 
         BigInteger Ks = voter_g_a.modPow(this.b, p);
+        
+        System.out.println("Admin: Derived DH value using a,b in admin side = " + Ks);
+        
         return CryptoUtil.deriveAESKey(Ks);
     }
 
